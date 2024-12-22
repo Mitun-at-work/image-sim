@@ -4,6 +4,7 @@ from datetime import datetime
 import numpy as np
 from PIL import Image
 
+Image.MAX_IMAGE_PIXELS = None
 
 class ImagePlotter:
     def load_image(self, image_path):

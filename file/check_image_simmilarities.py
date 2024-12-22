@@ -4,13 +4,13 @@ import os
 import numpy as np
 import torch
 from torchvision import models, transforms
-from PIL import Image
 from concurrent.futures import ProcessPoolExecutor
 from sklearn.neighbors import NearestNeighbors
 import multiprocessing
+from PIL import Image
 
+Image.MAX_IMAGE_PIXELS = None
 multiprocessing.set_start_method("spawn", force=True)
-
 
 class ImageSimilarityChecker:
     def __init__(self, image_directory="png", batch_size=32):
@@ -105,24 +105,26 @@ class ImageSimilarityChecker:
         if self.similarities is None or self.indices is None:
             self._compute_similarity()
 
-        similar_images = set()
-
-        if not self.similarities:
-            print("There're No Simmilar Images (or) The PNG Dir is Missing \n")
-            return
+        img_dict = {}
 
         img = set()
         for i, (sim, idx) in enumerate(zip(self.similarities, self.indices)):
 
             for j, index in enumerate(idx[1:]):
                 rounded_similarity = round(sim[j + 1], 2)
-                if rounded_similarity < 0.90:
+                if rounded_similarity < 0.95:
                     break
 
                 primary_img = self.image_paths[i].split("/")[1]
                 secondary_image = self.image_paths[index].split("/")[1]
-                img.add(primary_img)
-                img.add(secondary_image)
+
+                if primary_img not in img_dict : 
+                    img.add(primary_img)
+                    img_dict[primary_img] = True
+
+                if secondary_image not in img_dict : 
+                    img.add(secondary_image)
+                    img_dict[secondary_image] = True
 
         self.img_plotter.save_images_grid(list(img))
 
